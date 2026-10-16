@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>AI Studio</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- Adsgram (rewarded ads only) -->
+<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<style>
+:root{--bg:#0e1020;--card:#1a1e36;--card2:#242a52;--acc:#3b82f6;--acc2:#8b5cf6;--ok:#22c55e;--bad:#ef4444;--tx:#fff;--mut:#9aa3c7}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;overflow:hidden}
+.page{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);padding:14px 14px 90px;transform:translateX(100%);visibility:hidden;transition:transform .35s cubic-bezier(.22,.8,.28,1),visibility 0s linear .35s}
+.page.active{transform:none;visibility:visible;transition:transform .35s cubic-bezier(.22,.8,.28,1),visibility 0s}
+.page.under{transform:translateX(-28%)}
+.splash{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}
+.splash h1{margin:6px 0 0;font-size:28px;background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.splash p{color:var(--mut);margin:0}
+.bar{width:160px;height:5px;background:#222849;border-radius:9px;overflow:hidden;margin-top:14px}
+.bar i{display:block;height:100%;width:40%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:9px;animation:bar 1.1s infinite ease-in-out}
+@keyframes bar{0%{margin-left:-40%}100%{margin-left:100%}}
+.spin{width:90px;height:90px;border-radius:50%;border:6px solid #222849;border-top-color:var(--acc);animation:rot 1s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.hd{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.hd h2{margin:0;font-size:18px;flex:1}
+.bk{background:var(--card);border:0;color:#fff;width:38px;height:38px;border-radius:12px;font-size:18px;cursor:pointer;transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
+.bk:active{transform:scale(.88)}
+.chip{background:var(--card2);padding:5px 10px;border-radius:99px;font-size:12px;white-space:nowrap}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.av{width:46px;height:46px;border-radius:50%;object-fit:cover;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.top .nm{flex:1;min-width:0}
+.top .nm b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .nm small{color:var(--mut)}
+.ibtn{background:var(--card);border:0;color:#fff;height:40px;min-width:40px;padding:0 10px;border-radius:12px;font-size:15px;cursor:pointer;transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
+.ibtn:active{transform:scale(.88)}
+.coin{background:linear-gradient(90deg,#f59e0b,#f97316);padding:8px 12px;border-radius:12px;font-weight:700;font-size:14px;white-space:nowrap}
+.btn{display:block;width:100%;border:0;color:#fff;padding:13px;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;background:linear-gradient(90deg,var(--acc),var(--acc2));margin:10px 0;transition:transform .15s cubic-bezier(.34,1.56,.64,1),opacity .2s}
+.btn:active{transform:scale(.94)}
+.btn:disabled{opacity:.5}
+.btn.sec{background:var(--card2)}
+.btn.ad{background:linear-gradient(90deg,#16a34a,#22c55e);font-size:16px;padding:15px}
+.btn.bad{background:linear-gradient(90deg,#dc2626,#ef4444)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fc{background:var(--card);border-radius:18px;padding:16px 8px;text-align:center;cursor:pointer;position:relative;transition:transform .2s,box-shadow .2s;animation:pop .45s backwards;animation-delay:calc(var(--i)*35ms)}
+.fc:hover{transform:translateY(-5px) scale(1.04);box-shadow:0 8px 24px rgba(59,130,246,.35)}
+.fc:active{transform:scale(.94)}
+.fc .ic{font-size:34px;display:block;margin-bottom:6px}
+.fc b{font-size:13px;display:block}
+.fc small{display:inline-block;margin-top:6px;background:var(--card2);padding:3px 9px;border-radius:99px;font-size:11px}
+.fc.off{opacity:.4}
+@keyframes pop{from{opacity:0;transform:scale(.7) translateY(14px)}}
+.box{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px}
+.inp{width:100%;background:#12162b;border:1px solid #2a3060;color:#fff;border-radius:12px;padding:11px;font-size:14px;margin:5px 0;font-family:inherit}
+textarea.inp{resize:vertical}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.up{display:block;text-align:center;border:2px dashed #3a4280;border-radius:14px;padding:18px;cursor:pointer;color:var(--mut);margin:6px 0}
+.cv{width:100%;border-radius:12px;background:repeating-conic-gradient(#2a2f55 0 25%,#1c2040 0 50%) 50%/20px 20px;margin:8px 0;display:block}
+.out{margin-top:8px}
+.out img,.out video,.out audio{width:100%;border-radius:12px;display:block}
+.sl{margin:8px 0;font-size:13px;color:var(--mut)}.sl span{display:flex;justify-content:space-between}.sl input{width:100%}
+.tabs{display:flex;gap:6px;margin:8px 0}.tabs button{flex:1;background:var(--card2);color:#fff;border:0;border-radius:10px;padding:9px;cursor:pointer}.tabs button.on{background:var(--acc)}
+.sk{background:linear-gradient(90deg,#1a1e36 25%,#2a3160 50%,#1a1e36 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:12px}
+@keyframes sh{to{background-position:-200% 0}}
+.msg{padding:9px 12px;border-radius:14px;margin:6px 0;max-width:88%;white-space:pre-wrap;word-break:break-word;font-size:14px}
+.msg.u{background:var(--acc);margin-left:auto}.msg.a{background:var(--card2)}
+#chatlog{max-height:55vh;overflow-y:auto}
+.hist{display:flex;justify-content:space-between;padding:11px 4px;border-bottom:1px solid #222849;font-size:14px}
+.hist small{color:var(--mut);display:block}
+.pos{color:var(--ok);font-weight:700}.neg{color:var(--bad);font-weight:700}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat div{background:var(--card);border-radius:14px;padding:12px;text-align:center}.stat b{display:block;font-size:20px}.stat small{color:var(--mut)}
+.note{font-size:12px;color:var(--mut);margin:6px 0;line-height:1.5}
+.lock{color:var(--mut);font-size:12px}
+#toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(100px);background:#111633;border:1px solid #3a4280;padding:11px 16px;border-radius:14px;font-size:14px;z-index:999;transition:transform .3s;max-width:90%;text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#block{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px}
+#block h1{font-size:26px;margin:10px 0}#block p{color:var(--mut)}
+</style>
+</head>
+<body>
+<div id="pages">
+  <div class="page active" id="p-splash"><div class="splash"><div id="lot" style="width:170px;height:170px"></div><h1>AI Studio</h1><p>Loading your account…</p><div class="bar"><i></i></div></div></div>
+  <div class="page" id="p-home"></div>
+  <div class="page" id="p-profile"></div>
+  <div class="page" id="p-hist"></div>
+  <div class="page" id="p-fb"></div>
+</div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ================= CONFIG — REPLACE THESE ================= */
+const BOT_USERNAME   = 'YOUR_BOT';              // REPLACE: bot username without @
+const APP_SHORT_NAME = '';                      // REPLACE: Mini App short name from BotFather (/newapp). If empty, ?start= link is used
+const ADSGRAM_BLOCK_ID = 'YOUR_ADSGRAM_BLOCK_ID'; // REPLACE: Adsgram block id (rewarded)
+const SUPPORT_ID     = 'YOUR_SUPPORT_ID';       // REPLACE: support username (without @)
+const ADMIN_ID       = 0;                       // REPLACE: YOUR_TELEGRAM_ID (number) — owner gets 999999 coins & no ads
+const ADMIN_USERNAME = '';                      // OPTIONAL: your username (no @) so users can send feedback/requests to you with one tap
+const SIGN_SECRET    = 'change-this-secret';    // REPLACE: any random text. MUST be same in admin.html
+const YT_DL_API      = '';                      // OPTIONAL: your own downloader endpoint (returns JSON {"url":"..."}). Empty = disabled
+/* ========================================================== */
+
+const tg = window.Telegram && window.Telegram.WebApp;
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>[...(r||document).querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rnd=()=>Math.floor(Math.random()*1e9);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const today=()=>new Date().toLocaleDateString('en-CA');
+function hash(str){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<str.length;i++){const ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(16);}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2600);}
+function success(){try{confetti({particleCount:110,spread:75,origin:{y:.7}});}catch(e){}try{tg.HapticFeedback.notificationOccurred('success');}catch(e){}}
+function copyText(t){return (navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t):Promise.reject()).catch(()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');}catch(e){}a.remove();}).then(()=>toast('Copied ✅'));}
+function openLink(u){try{if(/^https:\/\/t\.me\//.test(u)&&tg.openTelegramLink)tg.openTelegramLink(u);else tg.openLink(u);}catch(e){window.open(u,'_blank');}}
+
+/* ================= STATE ================= */
+let DB={},P,ME,CFG,isOwner=false,BLOCKED=false,MYFP='';
+const DEF_COST={1:5,2:20,3:1,4:2,5:1,6:5,7:5,8:3,9:10,10:5,11:2,12:5,13:15,14:8,15:10,16:5,17:2,18:3,19:5,20:0};
+function defCfg(){const f={};for(let i=1;i<=20;i++)f[i]={cost:DEF_COST[i],on:true};return{adReward:10,dailyLimit:20,refReward:100,refDays:7,features:f,banned:[]};}
+CFG=defCfg();
+async function loadCfg(){try{const r=await fetch('config.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;const j=await r.json();['adReward','dailyLimit','refReward','refDays'].forEach(k=>{if(typeof j[k]==='number'&&j[k]>=0)CFG[k]=j[k];});if(Array.isArray(j.banned))CFG.banned=j.banned.map(Number);if(j.features)for(let i=1;i<=20;i++){const x=j.features[i];if(x){if(typeof x.cost==='number'&&x.cost>=0)CFG.features[i].cost=x.cost;if(typeof x.on==='boolean')CFG.features[i].on=x.on;}}}catch(e){}}
+
+/* ================= STORAGE (CloudStorage + localStorage backup) ================= */
+const hasCS=!!(tg&&tg.CloudStorage&&tg.isVersionAtLeast&&tg.isVersionAtLeast('6.9'));
+const withTO=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),ms))]);
+const CS={
+  get(keys){return withTO(new Promise(res=>{if(!hasCS)return res({});try{tg.CloudStorage.getItems(keys,(e,v)=>res(e?{}:(v||{})));}catch(e){res({});}}),5000).then(v=>v||{});},
+  set(k,v){return withTO(new Promise(res=>{if(!hasCS)return res(false);try{tg.CloudStorage.setItem(k,v,(e,ok)=>res(!e&&!!ok));}catch(e){res(false);}}),5000);}
+};
+const KEYS=['profile','hist','fb','req','refs','redeemed','photo'];
+const LS=k=>'tm_'+ME.id+'_'+k;
+const jparse=s=>{try{return JSON.parse(s);}catch(e){return null;}};
+async function loadAll(){
+  const cloud=await CS.get(KEYS);
+  KEYS.forEach(k=>{
+    const cv=cloud[k]?jparse(cloud[k]):null, lv=localStorage.getItem(LS(k))?jparse(localStorage.getItem(LS(k))):null;
+    let v=cv;
+    if(cv&&lv){ if(k==='profile')v=(lv.u||0)>(cv.u||0)?lv:cv; else if(Array.isArray(lv)&&Array.isArray(cv))v=lv.length>cv.length?lv:cv; }
+    else if(!cv)v=lv;
+    DB[k]=v;
+  });
+  P=DB.profile||(DB.profile={coins:0,ads:0,today:0,lastAd:'',refBy:null,refDays:[],joined:Date.now(),u:0});
+  ['hist','fb','req','refs','redeemed'].forEach(k=>{if(!Array.isArray(DB[k]))DB[k]=[];});
+  if(!Array.isArray(P.refDays))P.refDays=[];
+}
+function save(k){
+  const v=DB[k];if(v==null)return;
+  if(k==='profile')P.u=Date.now();
+  let s=JSON.stringify(v);
+  try{localStorage.setItem(LS(k),s);}catch(e){}
+  if(Array.isArray(v)){const a=v.slice();while(JSON.stringify(a).length>3900&&a.length>1)a.shift();s=JSON.stringify(a);}
+  if(s.length>4000)return;
+  CS.set(k,s);
+}
+
+/* ================= DEVICE LOCK ================= */
+async function deviceFP(){
+  let id=localStorage.getItem('tm_devid');if(!id){id=Math.random().toString(36).slice(2)+Date.now().toString(36);try{localStorage.setItem('tm_devid',id);}catch(e){}}
+  let gl='';try{const c=document.createElement('canvas').getContext('webgl');const e=c.getExtension('WEBGL_debug_renderer_info');gl=e?c.getParameter(e.UNMASKED_RENDERER_WEBGL):'';}catch(e){}
+  const raw=[tg.platform,Math.min(screen.width,screen.height),Math.max(screen.width,screen.height),devicePixelRatio,navigator.hardwareConcurrency,navigator.deviceMemory,Intl.DateTimeFormat().resolvedOptions().timeZone,gl].join('|');
+  return hash(raw)+'-'+id;
+}
+async function readDevice(){const c=await CS.get(['device']);return c.device?jparse(c.device):null;}
+async function deviceCheck(fp){
+  const cd=await readDevice(),ok='tm_owner_'+ME.id,mine=localStorage.getItem(ok);
+  const claim=()=>{CS.set('device',JSON.stringify({fp,t:Date.now()}));try{localStorage.setItem(ok,fp);}catch(e){}return 'ok';};
+  if(!hasCS)return 'ok';
+  if(!cd)return claim();
+  if(cd.fp===fp)return claim();
+  if(!mine)return claim();            // brand-new device: takes over, old device gets blocked
+  if(mine===cd.fp)return claim();     // same device, fingerprint drifted slightly
+  return 'blocked';                   // this device was replaced by a newer one
+}
+async function periodic(){
+  if(BLOCKED)return;
+  if(hasCS){const cd=await readDevice();if(cd&&cd.fp!==MYFP){return blockScreen('Logged in on another device','This account is now active on a newer device. This device is blocked.');}}
+  await loadCfg();
+  if(CFG.banned.includes(ME.id))blockScreen('Account Banned','Contact support: @'+SUPPORT_ID);
+}
+
+/* ================= BLOCK SCREEN ================= */
+function blockScreen(title,msg){
+  BLOCKED=true;
+  let d=$('#block');if(!d){d=document.createElement('div');d.id='block';document.body.appendChild(d);}
+  d.innerHTML='<div style="font-size:64px">🚫</div><h1>'+esc(title)+'</h1><p>'+esc(msg||'')+'</p>';
+  try{tg&&tg.BackButton.hide();}catch(e){}
+}
+
+/* ================= COINS ================= */
+const coinsNow=()=>isOwner?999999:P.coins;
+function renderCoins(){$$('.coins-val').forEach(e=>e.textContent=coinsNow());}
+function addCoins(a,r){
+  if(isOwner)return;
+  if(a<0&&P.coins+a<0)a=-P.coins;
+  P.coins+=a;DB.hist.push({t:Date.now(),a,r});if(DB.hist.length>300)DB.hist.shift();
+  save('profile');save('hist');renderCoins();
+}
+function spend(a,r){
+  if(isOwner||a<=0)return true;
+  if(P.coins<a){toast('Not enough coins. Watch an ad to earn!');return false;}
+  addCoins(-a,r);return true;
+}
+const fcost=id=>CFG.features[id].cost;
+const charge=id=>spend(fcost(id),F.find(f=>f.id===id).n);
+const refund=id=>{if(!isOwner&&fcost(id)>0)addCoins(fcost(id),'Refund: '+F.find(f=>f.id===id).n);};
+
+/* ================= ADS ================= */
+let AdC=null,adBusy=false;
+function rollDay(){if(P.lastAd!==today()){P.today=0;}}
+function adLabel(){rollDay();return 'Watch Ad +'+CFG.adReward+' Coins ('+P.today+'/'+CFG.dailyLimit+')';}
+function setAdBtn(){const b=$('#adbtn');if(!b)return;b.disabled=adBusy;b.textContent=adBusy?'Loading ad…':adLabel();}
+async function watchAd(){
+  if(adBusy||isOwner||BLOCKED)return;
+  rollDay();
+  if(P.today>=CFG.dailyLimit)return toast('Daily limit reached ('+CFG.dailyLimit+'). Come back tomorrow!');
+  if(!window.Adsgram)return toast('Ad service not loaded. Check internet.');
+  try{if(!AdC)AdC=window.Adsgram.init({blockId:ADSGRAM_BLOCK_ID});}catch(e){return toast('Ad init failed');}
+  adBusy=true;setAdBtn();
+  try{
+    const r=await AdC.show();
+    if(r&&r.done){
+      rollDay();
+      P.ads=(P.ads||0)+1;P.today++;P.lastAd=today();
+      const t=today();
+      if(P.refBy&&P.refDays.length<CFG.refDays&&!P.refDays.includes(t)){P.refDays.push(t);}
+      addCoins(CFG.adReward,'Rewarded ad');
+      save('profile');success();toast('+'+CFG.adReward+' coins 🎉');
+      if(P.refBy&&P.refDays.length>=CFG.refDays)toast('Referral goal done! Open Referral page for claim code');
+    }else toast('Watch the full ad to get reward');
+  }catch(r){toast((r&&r.description)||'No ad available now, try later');}
+  adBusy=false;setAdBtn();
+}
+
+/* ================= CODES (referral claim / gift) ================= */
+function makeCode(o){const p=btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/,'');return 'TM-'+p+'.'+hash(p+SIGN_SECRET).slice(0,8);}
+function parseCode(c){c=(c||'').trim();if(!c.startsWith('TM-'))return null;const [p,s]=c.slice(3).split('.');if(!p||!s||hash(p+SIGN_SECRET).slice(0,8)!==s)return null;try{return JSON.parse(decodeURIComponent(escape(atob(p))));}catch(e){return null;}}
+function redeem(code){
+  const o=parseCode(code);if(!o)return toast('Invalid code ❌');
+  if(Number(o.to)!==ME.id)return toast('This code is not for your account');
+  if(o.t==='rc'){
+    const key='rc'+o.from;if(DB.redeemed.includes(key))return toast('Already redeemed');
+    DB.redeemed.push(key);DB.refs.push({id:o.from,t:Date.now()});addCoins(CFG.refReward,'Referral reward');save('redeemed');save('refs');
+    success();toast('+'+CFG.refReward+' coins referral reward 🎉');return true;
+  }
+  if(o.t==='gc'){
+    const key='gc'+o.n;if(DB.redeemed.includes(key))return toast('Already redeemed');
+    DB.redeemed.push(key);addCoins(Number(o.amt)||0,'Admin '+(o.amt>=0?'gift':'adjustment'));save('redeemed');
+    success();toast((o.amt>=0?'+':'')+o.amt+' coins applied');return true;
+  }
+  toast('Unknown code');
+}
+
+/* ================= ROUTER ================= */
+const stack=['p-splash'];
+function updBack(){try{stack.length>1?tg.BackButton.show():tg.BackButton.hide();}catch(e){}}
+function go(id,replace){
+  if(BLOCKED)return;
+  const cur=$('#'+stack[stack.length-1]),nx=$('#'+id);if(!nx||cur===nx)return;
+  if(id==='p-profile')renderProfile();if(id==='p-hist')renderHist();if(id==='p-fb')renderFb();
+  if(replace){$$('.page').forEach(p=>p.classList.remove('active','under'));stack.length=0;}
+  else{cur.classList.remove('active');cur.classList.add('under');}
+  stack.push(id);nx.classList.remove('under');nx.classList.add('active');nx.scrollTop=0;updBack();
+}
+function back(){
+  if(stack.length<=1)return;
+  const cur=stack.pop();$('#'+cur).classList.remove('active');
+  const pv=$('#'+stack[stack.length-1]);pv.classList.remove('under');pv.classList.add('active');
+  try{speechSynthesis.cancel();}catch(e){}
+  $$('audio,video').forEach(a=>{try{a.pause();}catch(e){}});
+  document.dispatchEvent(new Event('pageleave'));updBack();
+}
+
+/* ================= HELPERS ================= */
+function avatarHTML(sz){
+  const src=(DB.photo&&DB.photo.d)||ME.photo;
+  if(src)return '<img class="av" style="width:'+sz+'px;height:'+sz+'px" src="'+esc(src)+'" onerror="this.outerHTML=\'<div class=av style=width:'+sz+'px;height:'+sz+'px>'+esc((ME.name||'?')[0]||'?')+'</div>\'">';
+  return '<div class="av" style="width:'+sz+'px;height:'+sz+'px">'+esc((ME.name||'?')[0]||'?')+'</div>';
+}
+function loadImg(url,timeout){timeout=timeout||120000;return new Promise((res,rej)=>{
+  let done=false;
+  const t=setTimeout(()=>{if(!done){done=true;rej(new Error('timeout'));}},timeout);
+  const attempt=cors=>{const im=new Image();if(cors)im.crossOrigin='anonymous';
+    im.onload=()=>{if(done)return;done=true;clearTimeout(t);res(im);};
+    im.onerror=()=>{if(done)return;if(cors)attempt(false);else{done=true;clearTimeout(t);rej(new Error('load'));}};
+    im.src=url;};
+  attempt(true);});}
+function fileToImg(f){return new Promise((res,rej)=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(new Error('bad image'));im.src=u;});}
+const iw=i=>i.naturalWidth||i.videoWidth||i.width,ih=i=>i.naturalHeight||i.videoHeight||i.height;
+function canvasOf(img,max){const k=Math.min(1,max/Math.max(iw(img),ih(img)));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(iw(img)*k));c.height=Math.max(1,Math.round(ih(img)*k));c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c;}
+function saveBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();},500);toast('Saved ✅ (check Downloads)');}
+function saveCanvas(c,name,type,q){c.toBlob(b=>b?saveBlob(b,name):toast('Export failed'),type||'image/png',q||.92);}
+async function dlUrl(url,name){try{const r=await fetch(url);saveBlob(await r.blob(),name);}catch(e){openLink(url);}}
+const slider=(id,l,min,max,v)=>'<div class="sl"><span>'+l+' <b id="v_'+id+'">'+v+'</b></span><input type="range" id="'+id+'" min="'+min+'" max="'+max+'" value="'+v+'"></div>';
+function bindSliders(b,fn){$$('input[type=range]',b).forEach(i=>i.oninput=()=>{const v=$('#v_'+i.id,b);if(v)v.textContent=i.value;fn();});}
+async function aiText(messages){
+  const r=await fetch('https://text.pollinations.ai/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages,model:'openai',seed:rnd()})});
+  if(!r.ok)throw new Error('AI error');const t=await r.text();if(!t)throw new Error('empty');return t;
+}
+const aiAsk=(p,sys)=>aiText([{role:'system',content:sys||'You are a helpful assistant.'},{role:'user',content:p}]);
+const FILTER_OK=(()=>{try{return 'filter' in document.createElement('canvas').getContext('2d');}catch(e){return false;}})();
+function adjustPixels(ctx,w,h,o){
+  const im=ctx.getImageData(0,0,w,h),d=im.data;
+  for(let i=0;i<d.length;i+=4){
+    let r=d[i]*o.b,g=d[i+1]*o.b,b=d[i+2]*o.b;
+    r=(r-128)*o.c+128;g=(g-128)*o.c+128;b=(b-128)*o.c+128;
+    let l=.299*r+.587*g+.114*b;r=l+(r-l)*o.s;g=l+(g-l)*o.s;b=l+(b-l)*o.s;
+    if(o.gray){l=.299*r+.587*g+.114*b;r+=(l-r)*o.gray;g+=(l-g)*o.gray;b+=(l-b)*o.gray;}
+    if(o.sepia){const sr=.393*r+.769*g+.189*b,sg=.349*r+.686*g+.168*b,sb=.272*r+.534*g+.131*b;r+=(sr-r)*o.sepia;g+=(sg-g)*o.sepia;b+=(sb-b)*o.sepia;}
+    d[i]=r;d[i+1]=g;d[i+2]=b;
+  }
+  ctx.putImageData(im,0,0);
+}
+function drawAdj(ctx,src,w,h,o){
+  o=Object.assign({b:1,c:1,s:1,gray:0,sepia:0,blur:0,hue:0},o||{});
+  if(FILTER_OK){ctx.filter='brightness('+o.b+') contrast('+o.c+') saturate('+o.s+') grayscale('+o.gray+') sepia('+o.sepia+') blur('+o.blur+'px) hue-rotate('+o.hue+'deg)';ctx.drawImage(src,0,0,w,h);ctx.filter='none';}
+  else{ctx.drawImage(src,0,0,w,h);if(o.b!==1||o.c!==1||o.s!==1||o.gray||o.sepia)adjustPixels(ctx,w,h,o);}
+}
+function sharpen(ctx,w,h,a){const s=ctx.getImageData(0,0,w,h),d=s.data,o=new Uint8ClampedArray(d);for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=(y*w+x)*4;for(let c=0;c<3;c++){const v=5*o[i+c]-o[i-4+c]-o[i+4+c]-o[i-w*4+c]-o[i+w*4+c];d[i+c]=o[i+c]+(v-o[i+c])*a;}}ctx.putImageData(s,0,0);}
+function drawCover(ctx,img,W,H,zoom,px,py){const s=Math.max(W/iw(img),H/ih(img))*(zoom||1),w=iw(img)*s,h=ih(img)*s;ctx.drawImage(img,(W-w)/2+(px||0),(H-h)/2+(py||0),w,h);}
+function wrapText(ctx,text,maxW){const words=String(text).split(/\s+/),lines=[];let cur='';words.forEach(w=>{const t=cur?cur+' '+w:w;if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;});if(cur)lines.push(cur);return lines;}
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+async function imagesToVideo(imgs,o){
+  o=Object.assign({W:720,H:1280,secPer:2.5},o||{});
+  const c=document.createElement('canvas');c.width=o.W;c.height=o.H;const ctx=c.getContext('2d');
+  if(!window.MediaRecorder||!c.captureStream)throw new Error('Video recording is not supported on this device');
+  const mime=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm','video/mp4'].find(m=>MediaRecorder.isTypeSupported(m));
+  if(!mime)throw new Error('No supported video format');
+  const rec=new MediaRecorder(c.captureStream(30),{mimeType:mime,videoBitsPerSecond:3000000}),chunks=[];
+  rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+  const stopped=new Promise(r=>rec.onstop=r);rec.start();
+  const per=o.secPer*1000,total=imgs.length*per,t0=performance.now();
+  await new Promise(res=>{(function f(){
+    const t=performance.now()-t0;if(t>=total)return res();
+    const idx=Math.min(imgs.length-1,Math.floor(t/per)),loc=(t%per)/per,dir=idx%2?-1:1;
+    ctx.fillStyle='#000';ctx.fillRect(0,0,o.W,o.H);
+    drawCover(ctx,imgs[idx],o.W,o.H,1.05+.15*(dir>0?loc:1-loc),dir*loc*20,0);
+    if(loc>.85&&idx<imgs.length-1){ctx.globalAlpha=(loc-.85)/.15;drawCover(ctx,imgs[idx+1],o.W,o.H,1.05,0,0);ctx.globalAlpha=1;}
+    if(o.onProgress)o.onProgress(t/total);
+    requestAnimationFrame(f);})();});
+  rec.stop();await stopped;
+  return new Blob(chunks,{type:mime.split(';')[0]});
+}
+const vidExt=b=>b.type.includes('mp4')?'mp4':'webm';
+function cartoonize(src,levels,edge){
+  const c=canvasOf(src,1024),w=c.width,h=c.height,t=document.createElement('canvas');t.width=w;t.height=h;
+  const tc=t.getContext('2d');drawAdj(tc,c,w,h,{s:1.3,blur:2});
+  const im=tc.getImageData(0,0,w,h),d=im.data,g=new Float32Array(w*h);
+  for(let i=0;i<w*h;i++)g[i]=.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2];
+  const step=255/(levels-1);
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+    const i=y*w+x,gx=-g[i-w-1]-2*g[i-1]-g[i+w-1]+g[i-w+1]+2*g[i+1]+g[i+w+1],gy=-g[i-w-1]-2*g[i-w]-g[i-w+1]+g[i+w-1]+2*g[i+w]+g[i+w+1],k=i*4;
+    if(Math.hypot(gx,gy)>edge){d[k]=d[k+1]=d[k+2]=20;}
+    else{d[k]=Math.round(d[k]/step)*step;d[k+1]=Math.round(d[k+1]/step)*step;d[k+2]=Math.round(d[k+2]/step)*step;}
+  }
+  tc.putImageData(im,0,0);return t;
+}
+const upl=(id,txt,acc)=>'<label class="up">'+txt+'<input type="file" accept="'+(acc||'image/*')+'" hidden id="'+id+'"></label>';
+
+/* ================= FEATURES ================= */
+// 1 AI Image
+function r1(b){
+  b.innerHTML='<div class="box"><textarea id="pr" class="inp" rows="3" placeholder="Describe the image…"></textarea><div class="row"><select id="st" class="inp"><option value="">Default style</option><option>photorealistic, 8k</option><option>anime style</option><option>digital art</option><option>oil painting</option><option>3d render</option><option>pixel art</option></select><select id="sz" class="inp"><option value="1024x1024">1:1</option><option value="1280x720">16:9</option><option value="720x1280">9:16</option></select></div><button class="btn" id="go">Generate ✨</button></div><div class="out" id="out"></div>';
+  $('#go',b).onclick=async()=>{
+    const p=$('#pr',b).value.trim();if(!p)return toast('Write a prompt');if(!charge(1))return;
+    const st=$('#st',b).value,[w,h]=$('#sz',b).value.split('x'),out=$('#out',b);
+    out.innerHTML='<div class="sk" style="height:260px"></div>';
+    const url='https://image.pollinations.ai/prompt/'+encodeURIComponent(p+(st?', '+st:''))+'?width='+w+'&height='+h+'&nologo=true&seed='+rnd();
+    try{await loadImg(url);out.innerHTML='<img src="'+url+'"><button class="btn sec" id="dl">⬇ Download</button>';$('#dl',out).onclick=()=>dlUrl(url,'ai-image.jpg');success();}
+    catch(e){refund(1);out.innerHTML='';toast('Failed — coins refunded');}
+  };
+}
+// 2 AI Video (AI key-frames animated into a video)
+function r2(b){
+  b.innerHTML='<div class="box"><textarea id="pr" class="inp" rows="3" placeholder="Describe the video scene…"></textarea><select id="as" class="inp"><option value="720x1280">9:16 (Reels/Shorts)</option><option value="1280x720">16:9</option></select><button class="btn" id="go">Create Video 🎬</button><p class="note">AI makes 4 key-frames, then animates them into a cinematic video on your device (takes ~1 min).</p></div><div class="out" id="out"></div>';
+  $('#go',b).onclick=async()=>{
+    const p=$('#pr',b).value.trim();if(!p)return toast('Write a prompt');if(!charge(2))return;
+    const [W,H]=$('#as',b).value.split('x').map(Number),out=$('#out',b),btn=$('#go',b);btn.disabled=true;
+    out.innerHTML='<div class="sk" style="height:220px"></div><p class="note" id="pg">Generating frames…</p>';
+    try{
+      const imgs=[];const sc=['opening wide shot','closer view','dynamic action moment','final cinematic shot'];
+      for(let i=0;i<4;i++){$('#pg',out).textContent='Generating frame '+(i+1)+'/4…';
+        imgs.push(await loadImg('https://image.pollinations.ai/prompt/'+encodeURIComponent(p+', '+sc[i]+', cinematic, high quality')+'?width='+W+'&height='+H+'&nologo=true&seed='+rnd()));}
+      $('#pg',out).textContent='Rendering video…';
+      const blob=await imagesToVideo(imgs,{W:W>H?960:540,H:W>H?540:960,secPer:2.5,onProgress:x=>{$('#pg',out).textContent='Rendering '+Math.round(x*100)+'%';}});
+      const u=URL.createObjectURL(blob);out.innerHTML='<video src="'+u+'" controls playsinline autoplay loop></video><button class="btn sec" id="dl">⬇ Download</button>';
+      $('#dl',out).onclick=()=>saveBlob(blob,'ai-video.'+vidExt(blob));success();
+    }catch(e){refund(2);out.innerHTML='';toast((e&&e.message)||'Failed')}
+    btn.disabled=false;
+  };
+}
+// 3 Chat
+function r3(b){
+  b.innerHTML='<div class="box"><div id="chatlog"><div class="msg a">Hi! Ask me anything 👋</div></div><div class="row" style="margin-top:8px"><input id="q" class="inp" placeholder="Type message…" style="flex:3"><button class="btn" id="send" style="flex:1;margin:5px 0">➤</button></div></div>';
+  const hist=[],log=$('#chatlog',b);
+  const send=async()=>{
+    const q=$('#q',b).value.trim();if(!q)return;if(!charge(3))return;$('#q',b).value='';
+    log.insertAdjacentHTML('beforeend','<div class="msg u">'+esc(q)+'</div><div class="msg a" id="typing">…</div>');log.scrollTop=log.scrollHeight;
+    hist.push({role:'user',content:q});
+    try{const a=await aiText([{role:'system',content:'You are a friendly helpful assistant.'}].concat(hist.slice(-10)));hist.push({role:'assistant',content:a});$('#typing',b).outerHTML='<div class="msg a">'+esc(a)+'</div>';}
+    catch(e){hist.pop();refund(3);$('#typing',b).outerHTML='<div class="msg a">⚠ Error, coins refunded. Try again.</div>';}
+    log.scrollTop=log.scrollHeight;
+  };
+  $('#send',b).onclick=send;$('#q',b).onkeydown=e=>{if(e.key==='Enter')send();};
+}
+// 4 Voice to text
+function r4(b){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  b.innerHTML='<div class="box">'+(SR?'':'<p class="note" style="color:#f59e0b">Speech recognition is not supported in this device/browser.</p>')+'<select id="lg" class="inp"><option value="en-US">English (US)</option><option value="en-GB">English (UK)</option><option value="ur-PK">Urdu</option><option value="hi-IN">Hindi</option><option value="ar-SA">Arabic</option><option value="es-ES">Spanish</option><option value="fr-FR">French</option></select><button class="btn" id="mic">🎤 Start</button><textarea id="ta" class="inp" rows="8" placeholder="Your speech appears here…"></textarea><button class="btn sec" id="cp">Copy text</button></div>';
+  let rec=null,on=false,fin='';const ta=$('#ta',b),btn=$('#mic',b);
+  btn.onclick=()=>{
+    if(!SR)return toast('Not supported here');
+    if(on){rec.stop();return;}
+    if(!charge(4))return;
+    rec=new SR();rec.lang=$('#lg',b).value;rec.continuous=true;rec.interimResults=true;fin=ta.value?ta.value+' ':'';
+    rec.onresult=e=>{let it='';for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)fin+=r[0].transcript+' ';else it+=r[0].transcript;}ta.value=fin+it;};
+    rec.onerror=e=>{if(['not-allowed','service-not-allowed','audio-capture'].includes(e.error)){refund(4);toast('Mic blocked — coins refunded');}else toast('Mic error: '+e.error);};
+    rec.onend=()=>{on=false;btn.textContent='🎤 Start';};
+    try{rec.start();on=true;btn.textContent='⏹ Stop';}catch(e){refund(4);toast('Could not start mic');}
+  };
+  $('#cp',b).onclick=()=>copyText(ta.value);
+  document.addEventListener('pageleave',()=>{try{if(on)rec.stop();}catch(e){}});
+}
+// 5 Text to voice
+function r5(b){
+  const syn=window.speechSynthesis;
+  b.innerHTML='<div class="box">'+(syn?'':'<p class="note" style="color:#f59e0b">Speech synthesis not supported.</p>')+'<textarea id="ta" class="inp" rows="6" placeholder="Type text to speak…"></textarea><select id="vo" class="inp"></select>'+slider('rt','Speed (x10)',5,20,10)+slider('pt','Pitch (x10)',5,20,10)+'<button class="btn" id="sp">🔊 Speak</button><button class="btn sec" id="st">⏹ Stop</button></div>';
+  bindSliders(b,()=>{});let vs=[];const sel=$('#vo',b);
+  const fill=()=>{vs=syn?syn.getVoices():[];sel.innerHTML=vs.map((v,i)=>'<option value="'+i+'">'+esc(v.name)+' ('+esc(v.lang)+')</option>').join('')||'<option value="-1">Default voice</option>';};
+  fill();if(syn)syn.onvoiceschanged=fill;
+  $('#sp',b).onclick=()=>{const t=$('#ta',b).value.trim();if(!syn)return toast('Not supported');if(!t)return toast('Enter text');if(!charge(5))return;
+    const u=new SpeechSynthesisUtterance(t);if(vs[+sel.value])u.voice=vs[+sel.value];u.rate=$('#rt',b).value/10;u.pitch=$('#pt',b).value/10;syn.cancel();syn.speak(u);};
+  $('#st',b).onclick=()=>syn&&syn.cancel();
+}
+// 6 YT to text
+const ytId=u=>{const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/);return m?m[1]:/^[\w-]{11}$/.test(u.trim())?u.trim():null;};
+async function proxyFetch(url){
+  const ps=['https://api.allorigins.win/raw?url=','https://corsproxy.io/?'];
+  for(const p of ps){try{const r=await fetch(p+encodeURIComponent(url));if(r.ok){const t=await r.text();if(t)return t;}}catch(e){}}
+  throw new Error('Proxy unavailable');
+}
+function r6(b){
+  b.innerHTML='<div class="box"><input id="u" class="inp" placeholder="Paste YouTube link…"><button class="btn" id="go">Get Transcript 📝</button><p class="note">Works only for videos that have captions/subtitles.</p><textarea id="ta" class="inp" rows="10" placeholder="Transcript…"></textarea><button class="btn sec" id="cp">Copy</button></div>';
+  $('#go',b).onclick=async()=>{
+    const id=ytId($('#u',b).value);if(!id)return toast('Invalid YouTube link');if(!charge(6))return;
+    const btn=$('#go',b);btn.disabled=true;btn.textContent='Fetching…';
+    try{
+      const html=await proxyFetch('https://www.youtube.com/watch?v='+id);
+      const m=html.match(/"captionTracks":(\[.*?\])/);if(!m)throw new Error('No captions found for this video');
+      const tr=JSON.parse(m[1]);const t=tr.find(x=>/^en/.test(x.languageCode))||tr[0];
+      const j=JSON.parse(await proxyFetch(t.baseUrl+'&fmt=json3'));
+      const txt=(j.events||[]).map(e=>(e.segs||[]).map(s=>s.utf8).join('')).join(' ').replace(/\s+/g,' ').trim();
+      if(!txt)throw new Error('Empty transcript');$('#ta',b).value=txt;success();
+    }catch(e){refund(6);toast((e&&e.message)||'Failed — coins refunded');}
+    btn.disabled=false;btn.textContent='Get Transcript 📝';
+  };
+  $('#cp',b).onclick=()=>copyText($('#ta',b).value);
+}
+// 7 YT downloader
+function r7(b){
+  b.innerHTML='<div class="box"><input id="u" class="inp" placeholder="Paste YouTube link…"><button class="btn" id="info">Load video</button><div id="out" class="out"></div></div>';
+  $('#info',b).onclick=async()=>{
+    const id=ytId($('#u',b).value);if(!id)return toast('Invalid YouTube link');const out=$('#out',b);
+    out.innerHTML='<div class="sk" style="height:180px"></div>';
+    let title='YouTube video';try{const r=await fetch('https://noembed.com/embed?url='+encodeURIComponent('https://www.youtube.com/watch?v='+id));const j=await r.json();if(j.title)title=j.title;}catch(e){}
+    const th='https://img.youtube.com/vi/'+id+'/maxresdefault.jpg';
+    out.innerHTML='<img src="'+th+'" onerror="this.src=\'https://img.youtube.com/vi/'+id+'/hqdefault.jpg\'"><p><b>'+esc(title)+'</b></p><button class="btn sec" id="th">⬇ Download Thumbnail (free)</button><button class="btn" id="dv">⬇ Download Video</button>'+(YT_DL_API?'':'<p class="note">Video download needs your own downloader backend (set <code>YT_DL_API</code> in index.html). Thumbnail download works without it.</p>');
+    $('#th',out).onclick=()=>dlUrl($('img',out).src,'thumbnail-'+id+'.jpg');
+    $('#dv',out).onclick=async()=>{
+      if(!YT_DL_API)return toast('Video downloader is not configured');if(!charge(7))return;
+      try{const r=await fetch(YT_DL_API+(YT_DL_API.includes('?')?'&':'?')+'url='+encodeURIComponent('https://www.youtube.com/watch?v='+id));const j=await r.json();if(!j.url)throw 0;openLink(j.url);success();}
+      catch(e){refund(7);toast('Download failed — coins refunded');}
+    };
+  };
+}
+// 8 Photo enhancer
+function r8(b){
+  b.innerHTML=upl('f','📷 Choose photo')+'<div id="ctl" style="display:none">'+slider('br','Brightness',50,150,100)+slider('co','Contrast',50,150,100)+slider('sa','Saturation',0,200,100)+slider('sh','Sharpen',0,100,0)+'<div class="row"><select id="sc" class="inp"><option value="1">Original size</option><option value="2">Upscale 2x</option></select><button class="btn sec" id="auto" style="margin:5px 0">✨ Auto</button></div><button class="btn" id="dl">Download enhanced</button></div><canvas id="cv" class="cv" style="display:none"></canvas>';
+  let src=null;const cv=$('#cv',b);
+  const build=(scale,target)=>{const w=Math.round(src.width*scale),h=Math.round(src.height*scale),c=target||document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.imageSmoothingQuality='high';
+    drawAdj(x,src,w,h,{b:$('#br',b).value/100,c:$('#co',b).value/100,s:$('#sa',b).value/100});const a=$('#sh',b).value/100;if(a>0)sharpen(x,w,h,a);return c;};
+  const render=()=>{if(src)build(1,cv);};
+  bindSliders(b,render);
+  $('#f',b).onchange=async e=>{const f=e.target.files[0];if(!f)return;try{src=canvasOf(await fileToImg(f),1600);cv.style.display='block';$('#ctl',b).style.display='block';render();}catch(x){toast('Bad image');}};
+  $('#auto',b).onclick=()=>{[['br',105],['co',112],['sa',118],['sh',40]].forEach(([k,v])=>{$('#'+k,b).value=v;$('#v_'+k,b).textContent=v;});render();};
+  $('#dl',b).onclick=()=>{if(!src)return;if(!charge(8))return;const sc=+$('#sc',b).value;saveCanvas(build(sc),'enhanced.png');success();};
+}
+// 9 Video enhancer
+function r9(b){
+  b.innerHTML=upl('f','🎞 Choose video (max 60 s)','video/*')+'<div id="ctl" style="display:none"><video id="pv" controls playsinline style="width:100%;border-radius:12px"></video>'+slider('br','Brightness',60,150,105)+slider('co','Contrast',60,150,110)+slider('sa','Saturation',0,200,115)+'<button class="btn" id="go">Enhance & Export</button><p class="note">Video is re-recorded in real time (takes as long as the video). Keep this page open.</p></div><div id="out" class="out"></div>';
+  let file=null;const pv=$('#pv',b);
+  const prev=()=>{pv.style.filter='brightness('+$('#br',b).value/100+') contrast('+$('#co',b).value/100+') saturate('+$('#sa',b).value/100+')';};
+  bindSliders(b,prev);
+  $('#f',b).onchange=e=>{file=e.target.files[0];if(!file)return;pv.src=URL.createObjectURL(file);$('#ctl',b).style.display='block';prev();};
+  $('#go',b).onclick=async()=>{
+    if(!file)return;if(!window.MediaRecorder)return toast('Not supported on this device');
+    const v=document.createElement('video');v.src=URL.createObjectURL(file);v.playsInline=true;
+    await new Promise((r,j)=>{v.onloadedmetadata=r;v.onerror=j;}).catch(()=>{});
+    if(!v.duration||v.duration>61)return toast('Video must be 60 seconds or less');
+    if(!charge(9))return;
+    const out=$('#out',b),btn=$('#go',b);btn.disabled=true;out.innerHTML='<div class="sk" style="height:120px"></div><p class="note" id="pg">Processing…</p>';
+    try{
+      const k=Math.min(1,1280/Math.max(v.videoWidth,v.videoHeight)),W=Math.round(v.videoWidth*k)&~1,H=Math.round(v.videoHeight*k)&~1;
+      const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+      const stream=c.captureStream(30);
+      try{const ac=new (window.AudioContext||window.webkitAudioContext)(),s=ac.createMediaElementSource(v),d=ac.createMediaStreamDestination();s.connect(d);d.stream.getAudioTracks().forEach(t=>stream.addTrack(t));}catch(e){}
+      const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'].find(m=>MediaRecorder.isTypeSupported(m));
+      const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:4000000}),ch=[];rec.ondataavailable=e=>{if(e.data.size)ch.push(e.data);};
+      const stopped=new Promise(r=>rec.onstop=r);rec.start();
+      const o={b:$('#br',b).value/100,c:$('#co',b).value/100,s:$('#sa',b).value/100};
+      await v.play();
+      await new Promise(res=>{v.onended=res;(function f(){if(v.ended||v.paused&&v.currentTime>=v.duration-.05)return;drawAdj(x,v,W,H,o);$('#pg',out).textContent='Processing '+Math.round(v.currentTime/v.duration*100)+'%';requestAnimationFrame(f);})();});
+      rec.stop();await stopped;
+      const blob=new Blob(ch,{type:mime.split(';')[0]}),u=URL.createObjectURL(blob);
+      out.innerHTML='<video src="'+u+'" controls playsinline></video><button class="btn sec" id="dl">⬇ Download</button>';$('#dl',out).onclick=()=>saveBlob(blob,'enhanced.'+vidExt(blob));success();
+    }catch(e){refund(9);out.innerHTML='';toast('Failed — coins refunded');}
+    btn.disabled=false;
+  };
+}
+// 10 BG remover
+function bgFast(img,tol){
+  const c=canvasOf(img,1600),ctx=c.getContext('2d'),w=c.width,h=c.height,im=ctx.getImageData(0,0,w,h),d=im.data;
+  const px=(x,y)=>{const i=(y*w+x)*4;return[d[i],d[i+1],d[i+2]];},cs=[px(0,0),px(w-1,0),px(0,h-1),px(w-1,h-1)],bg=[0,1,2].map(k=>cs.reduce((a,p)=>a+p[k],0)/4);
+  const vis=new Uint8Array(w*h),st=[],df=i=>Math.abs(d[i]-bg[0])+Math.abs(d[i+1]-bg[1])+Math.abs(d[i+2]-bg[2]);
+  const push=(x,y)=>{const k=y*w+x;if(!vis[k]&&df(k*4)<=tol){vis[k]=1;st.push(k);}};
+  for(let x=0;x<w;x++){push(x,0);push(x,h-1);}for(let y=0;y<h;y++){push(0,y);push(w-1,y);}
+  while(st.length){const k=st.pop(),x=k%w,y=(k/w)|0;d[k*4+3]=0;if(x>0)push(x-1,y);if(x<w-1)push(x+1,y);if(y>0)push(x,y-1);if(y<h-1)push(x,y+1);}
+  ctx.putImageData(im,0,0);return c;
+}
+function r10(b){
+  b.innerHTML=upl('f','🖼 Choose photo')+'<div class="box"><select id="md" class="inp"><option value="fast">Fast — plain/solid background</option><option value="ai">AI (best quality, downloads ~40MB model once)</option></select>'+slider('tol','Fast-mode tolerance',10,200,60)+'<button class="btn" id="go">Remove Background</button></div><div class="out" id="out"></div>';
+  bindSliders(b,()=>{});let file=null,img=null;
+  $('#f',b).onchange=async e=>{file=e.target.files[0];if(!file)return;try{img=await fileToImg(file);toast('Photo loaded');}catch(x){toast('Bad image');}};
+  $('#go',b).onclick=async()=>{
+    if(!img)return toast('Choose a photo first');if(!charge(10))return;
+    const out=$('#out',b),btn=$('#go',b);btn.disabled=true;out.innerHTML='<div class="sk" style="height:220px"></div><p class="note">Processing…</p>';
+    try{
+      let res;
+      if($('#md',b).value==='ai'){
+        const mod=await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm');
+        const blob=await mod.removeBackground(file);res=await new Promise(r=>{const i=new Image();i.onload=()=>r(canvasOf(i,2000));i.src=URL.createObjectURL(blob);});
+      }else res=bgFast(img,+$('#tol',b).value);
+      out.innerHTML='';res.className='cv';out.appendChild(res);
+      const d=document.createElement('button');d.className='btn sec';d.textContent='⬇ Download PNG';d.onclick=()=>saveCanvas(res,'no-bg.png');out.appendChild(d);success();
+    }catch(e){refund(10);out.innerHTML='';toast('Failed — coins refunded. Try Fast mode.');}
+    btn.disabled=false;
+  };
+}
+// 11 Image editor
+function r11(b){
+  b.innerHTML=upl('f','🖼 Open photo')+'<div id="ed" style="display:none"><canvas id="cv" class="cv" style="touch-action:none"></canvas><div class="tabs"><button data-t="crop" class="on">Crop</button><button data-t="filter">Filters</button><button data-t="text">Text</button></div>'+
+  '<div id="t-crop"><select id="asp" class="inp"><option value="0">Original</option><option value="1">1:1</option><option value="1.3333">4:3</option><option value="1.7778">16:9</option><option value="0.5625">9:16</option></select>'+slider('zm','Zoom %',100,300,100)+slider('ox','Move X',-100,100,0)+slider('oy','Move Y',-100,100,0)+'<div class="row"><button class="btn sec" id="rot">⟳ Rotate</button><button class="btn sec" id="flp">⇋ Flip</button></div></div>'+
+  '<div id="t-filter" style="display:none">'+slider('br','Brightness',50,150,100)+slider('co','Contrast',50,150,100)+slider('sa','Saturation',0,200,100)+slider('bl','Blur',0,10,0)+slider('hu','Hue',0,360,0)+slider('gr','Grayscale',0,100,0)+slider('se','Sepia',0,100,0)+'<button class="btn sec" id="rs">Reset filters</button></div>'+
+  '<div id="t-text" style="display:none"><input id="tx" class="inp" placeholder="Your text…"><input id="tc" type="color" class="inp" value="#ffffff" style="height:44px">'+slider('ts','Size',10,120,40)+'<div class="row"><button class="btn" id="ta">Add text</button><button class="btn sec" id="tu">Undo text</button></div><p class="note">Drag text on the image to move it.</p></div>'+
+  '<button class="btn" id="dl">Download</button></div>';
+  let S=null,rot=0,flip=false,texts=[],drag=-1;const cv=$('#cv',b),ctx=cv.getContext('2d');
+  const work=()=>{
+    const a=+$('#asp',b).value||(S.width/S.height);let cw=S.width,ch=S.height;if(cw/ch>a)cw=ch*a;else ch=cw/a;
+    const z=+$('#zm',b).value/100,vw=cw/z,vh=ch/z,mx=S.width-vw,my=S.height-vh,sx=mx/2+(+$('#ox',b).value/100)*mx/2,sy=my/2+(+$('#oy',b).value/100)*my/2;
+    let w=vw,h=vh;const k=Math.min(1,1400/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k);
+    const t=document.createElement('canvas'),odd=rot%2;t.width=odd?h:w;t.height=odd?w:h;const c=t.getContext('2d');
+    c.translate(t.width/2,t.height/2);c.rotate(rot*Math.PI/2);if(flip)c.scale(-1,1);c.drawImage(S,sx,sy,vw,vh,-w/2,-h/2,w,h);return t;};
+  const render=()=>{if(!S)return;const t=work();cv.width=t.width;cv.height=t.height;
+    drawAdj(ctx,t,t.width,t.height,{b:$('#br',b).value/100,c:$('#co',b).value/100,s:$('#sa',b).value/100,blur:+$('#bl',b).value,hue:+$('#hu',b).value,gray:$('#gr',b).value/100,sepia:$('#se',b).value/100});
+    ctx.textAlign='center';ctx.textBaseline='middle';texts.forEach(x=>{ctx.font='bold '+(x.s*cv.width/600)+'px Arial, sans-serif';ctx.lineWidth=Math.max(2,x.s*cv.width/6000*3);ctx.strokeStyle='rgba(0,0,0,.6)';ctx.strokeText(x.t,x.x*cv.width,x.y*cv.height);ctx.fillStyle=x.c;ctx.fillText(x.t,x.x*cv.width,x.y*cv.height);});};
+  bindSliders(b,render);
+  $('#asp',b).onchange=render;
+  $('#f',b).onchange=async e=>{const f=e.target.files[0];if(!f)return;try{S=canvasOf(await fileToImg(f),2000);$('#ed',b).style.display='block';rot=0;flip=false;texts=[];render();}catch(x){toast('Bad image');}};
+  $$('.tabs button',b).forEach(t=>t.onclick=()=>{$$('.tabs button',b).forEach(x=>x.classList.remove('on'));t.classList.add('on');['crop','filter','text'].forEach(n=>$('#t-'+n,b).style.display=n===t.dataset.t?'block':'none');});
+  $('#rot',b).onclick=()=>{rot=(rot+1)%4;render();};$('#flp',b).onclick=()=>{flip=!flip;render();};
+  $('#rs',b).onclick=()=>{[['br',100],['co',100],['sa',100],['bl',0],['hu',0],['gr',0],['se',0]].forEach(([k,v])=>{$('#'+k,b).value=v;$('#v_'+k,b).textContent=v;});render();};
+  $('#ta',b).onclick=()=>{const t=$('#tx',b).value.trim();if(!t)return toast('Enter text');texts.push({t,x:.5,y:.5,c:$('#tc',b).value,s:+$('#ts',b).value});render();};
+  $('#tu',b).onclick=()=>{texts.pop();render();};
+  const pt=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};};
+  cv.onpointerdown=e=>{const p=pt(e);let best=-1,bd=1e9;texts.forEach((t,i)=>{const d=Math.hypot(t.x-p.x,t.y-p.y);if(d<bd){bd=d;best=i;}});if(best>=0&&bd<.25){drag=best;try{cv.setPointerCapture(e.pointerId);}catch(x){}}};
+  cv.onpointermove=e=>{if(drag<0)return;const p=pt(e);texts[drag].x=Math.max(0,Math.min(1,p.x));texts[drag].y=Math.max(0,Math.min(1,p.y));render();};
+  cv.onpointerup=cv.onpointercancel=()=>{drag=-1;};
+  $('#dl',b).onclick=()=>{if(!S)return;if(!charge(11))return;saveCanvas(cv,'edited.png');success();};
+}
+// 12 Cartoon photo
+function r12(b){
+  b.innerHTML=upl('f','📷 Choose photo to cartoonize')+'<div class="box">'+slider('lv','Color levels',3,10,6)+slider('ed','Outline strength (low = more lines)',20,200,70)+'<button class="btn" id="go">Cartoonize 🎨</button></div><div class="box"><p class="note"><b>Or AI cartoon from text</b></p><input id="pr" class="inp" placeholder="e.g. a cute cat astronaut"><button class="btn sec" id="ai">Generate AI cartoon</button></div><div class="out" id="out"></div>';
+  bindSliders(b,()=>{});let img=null;
+  $('#f',b).onchange=async e=>{const f=e.target.files[0];if(!f)return;try{img=await fileToImg(f);toast('Photo loaded');}catch(x){toast('Bad image');}};
+  $('#go',b).onclick=()=>{if(!img)return toast('Choose a photo first');if(!charge(12))return;const out=$('#out',b);
+    try{const c=cartoonize(img,+$('#lv',b).value,+$('#ed',b).value);out.innerHTML='';c.className='cv';out.appendChild(c);const d=document.createElement('button');d.className='btn sec';d.textContent='⬇ Download';d.onclick=()=>saveCanvas(c,'cartoon.png');out.appendChild(d);success();}
+    catch(e){refund(12);toast('Failed — coins refunded');}};
+  $('#ai',b).onclick=async()=>{const p=$('#pr',b).value.trim();if(!p)return toast('Enter a description');if(!charge(12))return;const out=$('#out',b);out.innerHTML='<div class="sk" style="height:240px"></div>';
+    const u='https://image.pollinations.ai/prompt/'+encodeURIComponent('cartoon style illustration, vibrant colors, bold outlines, '+p)+'?width=1024&height=1024&nologo=true&seed='+rnd();
+    try{await loadImg(u);out.innerHTML='<img src="'+u+'"><button class="btn sec" id="dl">⬇ Download</button>';$('#dl',out).onclick=()=>dlUrl(u,'cartoon-ai.jpg');success();}catch(e){refund(12);out.innerHTML='';toast('Failed — coins refunded');}};
+}
+// 13 Cartoon video
+function r13(b){
+  b.innerHTML=upl('f','📷 Choose photo (optional)')+'<div class="box"><input id="pr" class="inp" placeholder="Or describe a cartoon scene (if no photo)"><select id="as" class="inp"><option value="720x1280">9:16</option><option value="1280x720">16:9</option></select><button class="btn" id="go">Create Cartoon Video 🎬</button><p class="note">Photo → cartoon effect → animated video. No photo → AI cartoon frames from your text.</p></div><div class="out" id="out"></div>';
+  let img=null;
+  $('#f',b).onchange=async e=>{const f=e.target.files[0];if(!f)return;try{img=await fileToImg(f);toast('Photo loaded');}catch(x){toast('Bad image');}};
+  $('#go',b).onclick=async()=>{
+    const p=$('#pr',b).value.trim();if(!img&&!p)return toast('Choose a photo or write a description');if(!charge(13))return;
+    const [W,H]=$('#as',b).value.split('x').map(Number),out=$('#out',b),btn=$('#go',b);btn.disabled=true;out.innerHTML='<div class="sk" style="height:200px"></div><p class="note" id="pg">Working…</p>';
+    try{
+      let frames=[];
+      if(img){const c=cartoonize(img,6,70);frames=[c,c,c];}
+      else{for(let i=0;i<3;i++){$('#pg',out).textContent='Generating cartoon frame '+(i+1)+'/3…';frames.push(await loadImg('https://image.pollinations.ai/prompt/'+encodeURIComponent('cartoon style, bold outlines, vibrant, '+p+', scene '+(i+1))+'?width='+W+'&height='+H+'&nologo=true&seed='+rnd()));}}
+      const vw=W>H?960:540,vh=W>H?540:960;
+      const blob=await imagesToVideo(frames,{W:vw,H:vh,secPer:2.2,onProgress:x=>{$('#pg',out).textContent='Rendering '+Math.round(x*100)+'%';}});
+      const u=URL.createObjectURL(blob);out.innerHTML='<video src="'+u+'" controls playsinline autoplay loop></video><button class="btn sec" id="dl">⬇ Download</button>';$('#dl',out).onclick=()=>saveBlob(blob,'cartoon-video.'+vidExt(blob));success();
+    }catch(e){refund(13);out.innerHTML='';toast((e&&e.message)||'Failed — coins refunded');}
+    btn.disabled=false;
+  };
+}
+// 14 Avatar / Face swap
+function r14(b){
+  b.innerHTML='<div class="tabs"><button data-t="av" class="on">AI Avatar</button><button data-t="sw">Face Swap</button></div>'+
+  '<div id="t-av" class="box"><input id="pr" class="inp" placeholder="Describe avatar (e.g. young man, beard, hoodie)"><select id="stl" class="inp"><option>3d pixar style avatar</option><option>anime avatar</option><option>flat vector avatar</option><option>realistic portrait</option><option>pixel art avatar</option></select><button class="btn" id="go">Generate Avatar 🧑‍🎤</button><div class="out" id="out"></div></div>'+
+  '<div id="t-sw" class="box" style="display:none"><p class="note">Manual face swap: pick the face area on both photos with sliders, then blend. (True AI swap needs a paid server model.)</p>'+upl('fa','📷 Target photo (face goes ON this)')+upl('fb','📷 Source photo (face taken FROM this)')+
+  '<div class="row"><canvas id="ca" class="cv"></canvas><canvas id="cb" class="cv"></canvas></div>'+slider('ax','Target X %',0,100,50)+slider('ay','Target Y %',0,100,40)+slider('ar','Target size %',5,60,20)+slider('bx','Source X %',0,100,50)+slider('by','Source Y %',0,100,40)+slider('br','Source size %',5,60,20)+'<button class="btn" id="sw">Swap Faces 🔁</button><div class="out" id="so"></div></div>';
+  $$('.tabs button',b).forEach(t=>t.onclick=()=>{$$('.tabs button',b).forEach(x=>x.classList.remove('on'));t.classList.add('on');$('#t-av',b).style.display=t.dataset.t==='av'?'block':'none';$('#t-sw',b).style.display=t.dataset.t==='sw'?'block':'none';});
+  $('#go',b).onclick=async()=>{const p=$('#pr',b).value.trim();if(!p)return toast('Describe the avatar');if(!charge(14))return;const out=$('#out',b);out.innerHTML='<div class="sk" style="height:240px"></div>';
+    const u='https://image.pollinations.ai/prompt/'+encodeURIComponent($('#stl',b).value+', '+p+', centered, clean background')+'?width=1024&height=1024&nologo=true&seed='+rnd();
+    try{await loadImg(u);out.innerHTML='<img src="'+u+'"><button class="btn sec" id="dl">⬇ Download</button>';$('#dl',out).onclick=()=>dlUrl(u,'avatar.jpg');success();}catch(e){refund(14);out.innerHTML='';toast('Failed — coins refunded');}};
+  let A=null,B=null;const ca=$('#ca',b),cb=$('#cb',b);
+  const guide=()=>{[[A,ca,'ax','ay','ar'],[B,cb,'bx','by','br']].forEach(([im,c,x,y,r])=>{if(!im)return;c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);g.strokeStyle='#22c55e';g.lineWidth=Math.max(3,c.width/150);g.beginPath();g.arc($('#'+x,b).value/100*c.width,$('#'+y,b).value/100*c.height,$('#'+r,b).value/100*c.width,0,7);g.stroke();});};
+  bindSliders(b,guide);
+  $('#fa',b).onchange=async e=>{const f=e.target.files[0];if(f){A=canvasOf(await fileToImg(f),1000);guide();}};
+  $('#fb',b).onchange=async e=>{const f=e.target.files[0];if(f){B=canvasOf(await fileToImg(f),1000);guide();}};
+  $('#sw',b).onclick=()=>{
+    if(!A||!B)return toast('Choose both photos');if(!charge(14))return;
+    const c=document.createElement('canvas');c.width=A.width;c.height=A.height;const x=c.getContext('2d');x.drawImage(A,0,0);
+    const ar=$('#ar',b).value/100*A.width,br=$('#br',b).value/100*B.width,sz=Math.round(ar*2),t=document.createElement('canvas');t.width=t.height=sz;const tx=t.getContext('2d');
+    tx.drawImage(B,$('#bx',b).value/100*B.width-br,$('#by',b).value/100*B.height-br,br*2,br*2,0,0,sz,sz);
+    const g=tx.createRadialGradient(sz/2,sz/2,sz*.25,sz/2,sz/2,sz/2);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');tx.globalCompositeOperation='destination-in';tx.fillStyle=g;tx.fillRect(0,0,sz,sz);
+    x.drawImage(t,$('#ax',b).value/100*A.width-ar,$('#ay',b).value/100*A.height-ar);
+    const so=$('#so',b);so.innerHTML='';c.className='cv';so.appendChild(c);const d=document.createElement('button');d.className='btn sec';d.textContent='⬇ Download';d.onclick=()=>saveCanvas(c,'swap.png');so.appendChild(d);success();
+  };
+}
+// 15 AI music
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const GEN={lofi:{k:[0,10],sn:[4,12],hs:2,hv:.1,mp:.35,sw:.18,wave:'triangle',lp:900},hiphop:{k:[0,7,10],sn:[4,12],hs:2,hv:.14,mp:.25,sw:.08,wave:'sawtooth',lp:700},edm:{k:[0,4,8,12],sn:[4,12],hs:2,hv:.12,mp:.5,sw:0,wave:'sawtooth',lp:2500},chill:{k:[0,8],sn:[12],hs:4,hv:.1,mp:.3,sw:.05,wave:'sine',lp:1200}};
+function wavBlob(buf){const ch=buf.numberOfChannels,len=buf.length,sr=buf.sampleRate,ab=new ArrayBuffer(44+len*ch*2),v=new DataView(ab),ws=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+  ws(0,'RIFF');v.setUint32(4,36+len*ch*2,true);ws(8,'WAVE');ws(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,ch,true);v.setUint32(24,sr,true);v.setUint32(28,sr*ch*2,true);v.setUint16(32,ch*2,true);v.setUint16(34,16,true);ws(36,'data');v.setUint32(40,len*ch*2,true);
+  let o=44;const d=[];for(let c=0;c<ch;c++)d.push(buf.getChannelData(c));for(let i=0;i<len;i++)for(let c=0;c<ch;c++){const s=Math.max(-1,Math.min(1,d[c][i]));v.setInt16(o,s<0?s*32768:s*32767,true);o+=2;}return new Blob([ab],{type:'audio/wav'});}
+async function makeBeat(o){
+  const OC=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!OC)throw new Error('Audio engine not supported');
+  const sr=44100,step=60/o.bpm/4,dur=o.bars*16*step+1.5,ctx=new OC(2,Math.ceil(sr*dur),sr),G=GEN[o.genre],R=mulberry(o.seed);
+  const master=ctx.createGain();master.gain.value=.8;const comp=ctx.createDynamicsCompressor();master.connect(comp);comp.connect(ctx.destination);
+  const nb=ctx.createBuffer(1,sr,sr),nd=nb.getChannelData(0);for(let i=0;i<sr;i++)nd[i]=R()*2-1;
+  const mtof=m=>440*Math.pow(2,(m-69)/12);
+  const env=(g,t,a,d,v)=>{g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+d);};
+  const kick=t=>{const os=ctx.createOscillator(),g=ctx.createGain();os.frequency.setValueAtTime(160,t);os.frequency.exponentialRampToValueAtTime(42,t+.12);env(g,t,.005,.28,1);os.connect(g);g.connect(master);os.start(t);os.stop(t+.35);};
+  const noise=(t,hp,a,d,v)=>{const s=ctx.createBufferSource();s.buffer=nb;const f=ctx.createBiquadFilter();f.type='highpass';f.frequency.value=hp;const g=ctx.createGain();env(g,t,a,d,v);s.connect(f);f.connect(g);g.connect(master);s.start(t);s.stop(t+a+d+.05);};
+  const tone=(m,t,len,type,vol,lp)=>{const os=ctx.createOscillator(),g=ctx.createGain(),f=ctx.createBiquadFilter();os.type=type;os.frequency.value=mtof(m);f.type='lowpass';f.frequency.value=lp;env(g,t,.01,len,vol);os.connect(f);f.connect(g);g.connect(master);os.start(t);os.stop(t+len+.05);};
+  const prog=[[0,[0,3,7,10]],[8,[0,4,7,11]],[3,[0,4,7,11]],[10,[0,4,7,10]]],pent=[0,3,5,7,10];
+  for(let bar=0;bar<o.bars;bar++){const [rt,ch]=prog[bar%4];
+    for(let s=0;s<16;s++){let t=(bar*16+s)*step;if(s%2)t+=step*G.sw;
+      if(G.k.includes(s))kick(t);if(G.sn.includes(s))noise(t,1500,.002,.16,.5);
+      if(s%G.hs===0)noise(t,7000,.001,.04,G.hv);else if(R()<.12)noise(t,7000,.001,.03,G.hv*.6);
+      if(o.genre==='edm'&&s%4===2)noise(t,6000,.002,.12,.1);
+      if([0,6,10].includes(s)&&(s===0||R()<.7))tone(o.root-12+rt,t,step*3,'sawtooth',.28,300);
+      if(s===0)ch.forEach(n=>tone(o.root+rt+n,t,step*15,G.wave,.07,G.lp));
+      if(s%2===0&&R()<G.mp)tone(o.root+12+pent[Math.floor(R()*5)]+(R()<.3?12:0),t,step*1.6,'triangle',.08,2500);}}
+  return wavBlob(await ctx.startRendering());
+}
+function r15(b){
+  b.innerHTML='<div class="box"><select id="gn" class="inp"><option value="lofi">Lo-fi</option><option value="hiphop">Hip-hop</option><option value="edm">EDM</option><option value="chill">Chill</option></select>'+slider('bp','BPM',60,160,90)+'<div class="row"><select id="rt" class="inp"><option value="45">Key A</option><option value="48">Key C</option><option value="50">Key D</option><option value="52">Key E</option><option value="55">Key G</option></select><select id="bs" class="inp"><option value="8">8 bars</option><option value="16" selected>16 bars</option></select></div><button class="btn" id="go">Generate Beat 🎵</button></div><div class="out" id="out"></div>';
+  bindSliders(b,()=>{});
+  $('#go',b).onclick=async()=>{if(!charge(15))return;const out=$('#out',b),btn=$('#go',b);btn.disabled=true;out.innerHTML='<div class="sk" style="height:70px"></div>';
+    try{const blob=await makeBeat({genre:$('#gn',b).value,bpm:+$('#bp',b).value,bars:+$('#bs',b).value,root:+$('#rt',b).value,seed:rnd()});
+      out.innerHTML='<audio controls src="'+URL.createObjectURL(blob)+'"></audio><button class="btn sec" id="dl">⬇ Download WAV</button>';$('#dl',out).onclick=()=>saveBlob(blob,'beat.wav');success();}
+    catch(e){refund(15);out.innerHTML='';toast((e&&e.message)||'Failed — coins refunded');}btn.disabled=false;};
+}
+// 16 Logo maker
+function r16(b){
+  b.innerHTML='<div class="box"><input id="nm" class="inp" placeholder="Brand name" value="My Brand"><input id="tg" class="inp" placeholder="Tagline (optional)"><input id="em" class="inp" placeholder="Icon emoji" value="🚀"><div class="row"><select id="sh" class="inp"><option value="circle">Circle</option><option value="round">Rounded</option><option value="square">Square</option><option value="none">No shape</option></select><select id="fn" class="inp"><option>Arial</option><option>Georgia</option><option>Impact</option><option>Courier New</option><option>Trebuchet MS</option></select></div><div class="row"><input id="c1" type="color" class="inp" value="#3b82f6" style="height:44px"><input id="c2" type="color" class="inp" value="#8b5cf6" style="height:44px"><input id="c3" type="color" class="inp" value="#ffffff" style="height:44px"></div><canvas id="cv" class="cv" width="512" height="512"></canvas><button class="btn" id="dl">Download PNG</button></div><div class="box"><p class="note"><b>AI logo</b> (uses Pollinations)</p><input id="ap" class="inp" placeholder="e.g. coffee shop, minimal, brown"><button class="btn sec" id="ai">Generate AI logo</button><div class="out" id="out"></div></div>';
+  const cv=$('#cv',b),x=cv.getContext('2d');
+  const draw=()=>{x.clearRect(0,0,512,512);const g=x.createLinearGradient(0,0,512,512);g.addColorStop(0,$('#c1',b).value);g.addColorStop(1,$('#c2',b).value);x.fillStyle=g;const sh=$('#sh',b).value;
+    if(sh==='circle'){x.beginPath();x.arc(256,256,250,0,7);x.fill();}else if(sh==='round'){rr(x,6,6,500,500,110);x.fill();}else if(sh==='square')x.fillRect(6,6,500,500);
+    const tc=sh==='none'?$('#c1',b).value:$('#c3',b).value;x.textAlign='center';x.textBaseline='middle';x.fillStyle=tc;
+    const em=$('#em',b).value.trim(),nm=$('#nm',b).value.trim(),tg=$('#tg',b).value.trim(),fn=$('#fn',b).value;
+    if(em){x.font='150px "Apple Color Emoji","Segoe UI Emoji",sans-serif';x.fillStyle='#fff';x.fillText(em,256,170);x.fillStyle=tc;}
+    let fs=72;x.font='bold '+fs+'px '+fn;while(x.measureText(nm).width>420&&fs>20){fs-=3;x.font='bold '+fs+'px '+fn;}x.fillText(nm,256,em?325:240);
+    if(tg){x.globalAlpha=.85;x.font='28px '+fn;x.fillText(tg,256,em?385:300);x.globalAlpha=1;}};
+  $$('input,select',b).forEach(i=>{if(i.id!=='ap')i.oninput=draw;});draw();
+  $('#dl',b).onclick=()=>{if(!charge(16))return;saveCanvas(cv,'logo.png');success();};
+  $('#ai',b).onclick=async()=>{const p=$('#ap',b).value.trim()||$('#nm',b).value.trim();if(!p)return toast('Describe the logo');if(!charge(16))return;const out=$('#out',b);out.innerHTML='<div class="sk" style="height:240px"></div>';
+    const u='https://image.pollinations.ai/prompt/'+encodeURIComponent('minimalist vector logo, flat design, white background, '+p)+'?width=1024&height=1024&nologo=true&seed='+rnd();
+    try{await loadImg(u);out.innerHTML='<img src="'+u+'"><button class="btn sec" id="d2">⬇ Download</button>';$('#d2',out).onclick=()=>dlUrl(u,'ai-logo.jpg');success();}catch(e){refund(16);out.innerHTML='';toast('Failed — coins refunded');}};
+}
+// 17 / 18 text generators
+function textGen(b,id,fields,mk,sys){
+  b.innerHTML='<div class="box">'+fields+'<button class="btn" id="go">Generate ✨</button><textarea id="ta" class="inp" rows="10" placeholder="Result…"></textarea><button class="btn sec" id="cp">Copy</button></div>';
+  $('#go',b).onclick=async()=>{const p=mk(b);if(!p)return;if(!charge(id))return;const btn=$('#go',b);btn.disabled=true;btn.textContent='Writing…';
+    try{$('#ta',b).value=await aiAsk(p,sys);success();}catch(e){refund(id);toast('Failed — coins refunded');}btn.disabled=false;btn.textContent='Generate ✨';};
+  $('#cp',b).onclick=()=>copyText($('#ta',b).value);
+}
+function r17(b){textGen(b,17,'<textarea id="tp" class="inp" rows="3" placeholder="What is your post about?"></textarea><div class="row"><select id="pl" class="inp"><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>Facebook</option><option>X (Twitter)</option><option>LinkedIn</option></select><select id="tn" class="inp"><option>Fun</option><option>Professional</option><option>Inspirational</option><option>Funny</option><option>Emotional</option></select></div>',
+  c=>{const t=$('#tp',c).value.trim();if(!t){toast('Enter a topic');return null;}return 'Write 3 different '+$('#tn',c).value+' captions for '+$('#pl',c).value+' about: '+t+'. Then give 15 relevant, popular hashtags. Keep it clean and ready to paste.';},'You are an expert social media copywriter.');}
+function r18(b){textGen(b,18,'<textarea id="tp" class="inp" rows="3" placeholder="Story idea / characters / setting…"></textarea><div class="row"><select id="gn" class="inp"><option>Adventure</option><option>Fantasy</option><option>Mystery</option><option>Sci-Fi</option><option>Moral story</option><option>Comedy</option><option>Romance</option></select><select id="ln" class="inp"><option value="about 200 words">Short</option><option value="about 450 words">Medium</option><option value="about 800 words">Long</option></select></div>',
+  c=>{const t=$('#tp',c).value.trim();if(!t){toast('Enter an idea');return null;}return 'Write a '+$('#gn',c).value+' story, '+$('#ln',c).value+', with a title, a clear beginning, middle and end, based on: '+t;},'You are a creative storyteller. Keep content family-friendly.');}
+// 19 Thumbnail
+function r19(b){
+  b.innerHTML='<div class="box"><input id="tt" class="inp" placeholder="Title" value="I TRIED THIS FOR 24 HOURS"><input id="sb" class="inp" placeholder="Badge text" value="MUST WATCH"><div class="row"><select id="tp" class="inp"><option value="bold">Bold</option><option value="gaming">Gaming</option><option value="vlog">Vlog</option><option value="clean">Clean</option></select><input id="ac" type="color" class="inp" value="#ef4444" style="height:44px"></div>'+upl('fb','🖼 Background photo (optional)')+upl('fs','🙂 Subject photo (optional)')+'<canvas id="cv" class="cv" width="1280" height="720"></canvas><button class="btn" id="dl">Download JPG (1280×720)</button></div>';
+  let bg=null,sj=null;const cv=$('#cv',b),x=cv.getContext('2d'),W=1280,H=720;
+  const title=(s,fs,font,maxW)=>{x.font=fs+'px '+font;return wrapText(x,s.toUpperCase(),maxW);};
+  const draw=()=>{
+    const t=$('#tt',b).value||'TITLE',sub=$('#sb',b).value.trim(),ac=$('#ac',b).value,tp=$('#tp',b).value;x.clearRect(0,0,W,H);x.textBaseline='top';x.textAlign='left';
+    const subj=()=>{if(!sj)return;const s=Math.min(560/iw(sj),680/ih(sj)),w=iw(sj)*s,h=ih(sj)*s;x.drawImage(sj,W-w-30,H-h,w,h);};
+    if(tp==='bold'){if(bg){drawCover(x,bg,W,H);x.fillStyle='rgba(0,0,0,.45)';x.fillRect(0,0,W,H);}else{const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,ac);g.addColorStop(1,'#111');x.fillStyle=g;x.fillRect(0,0,W,H);}
+      subj();let fs=130,ls;do{ls=title(t,fs,'Impact, "Arial Black", sans-serif',sj?720:1160);fs-=6;}while(ls.length*fs*1.05>560&&fs>40);fs+=6;x.font=fs+'px Impact, "Arial Black", sans-serif';x.lineJoin='round';
+      const y0=(H-ls.length*fs*1.05)/2;ls.forEach((l,i)=>{x.lineWidth=14;x.strokeStyle='#000';x.strokeText(l,60,y0+i*fs*1.05);x.fillStyle=i%2?'#facc15':'#fff';x.fillText(l,60,y0+i*fs*1.05);});
+      if(sub){x.font='bold 44px Arial';const w=x.measureText(sub).width+50;x.fillStyle=ac;rr(x,50,H-110,w,70,16);x.fill();x.fillStyle='#fff';x.fillText(sub,75,H-96);}}
+    else if(tp==='gaming'){x.fillStyle='#0b0014';x.fillRect(0,0,W,H);if(bg){x.globalAlpha=.35;drawCover(x,bg,W,H);x.globalAlpha=1;}
+      x.save();x.strokeStyle=ac;x.globalAlpha=.25;x.lineWidth=18;for(let i=-H;i<W;i+=90){x.beginPath();x.moveTo(i,H);x.lineTo(i+H,0);x.stroke();}x.restore();subj();
+      let fs=125,ls;do{ls=title(t,fs,'Impact, "Arial Black", sans-serif',sj?720:1160);fs-=6;}while(ls.length*fs*1.05>560&&fs>40);fs+=6;x.font=fs+'px Impact, "Arial Black", sans-serif';x.shadowColor=ac;x.shadowBlur=35;x.fillStyle='#fff';
+      const y0=(H-ls.length*fs*1.05)/2;ls.forEach((l,i)=>x.fillText(l,60,y0+i*fs*1.05));x.shadowBlur=0;
+      if(sub){x.font='bold 40px Arial';x.fillStyle=ac;x.fillText('▶ '+sub,60,60);}}
+    else if(tp==='vlog'){if(bg)drawCover(x,bg,W,H);else{const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#38bdf8');g.addColorStop(1,'#6366f1');x.fillStyle=g;x.fillRect(0,0,W,H);}subj();
+      x.fillStyle='rgba(255,255,255,.96)';x.fillRect(0,H-210,W,210);x.fillStyle=ac;x.fillRect(0,H-210,22,210);
+      let fs=84,ls;do{ls=title(t,fs,'Arial Black, Arial, sans-serif',sj?700:1150);fs-=4;}while(ls.length*fs*1.1>170&&fs>30);fs+=4;x.font=fs+'px Arial Black, Arial, sans-serif';x.fillStyle='#111';ls.forEach((l,i)=>x.fillText(l,50,H-195+i*fs*1.1));
+      if(sub){x.font='bold 38px Arial';const w=x.measureText(sub).width+44;x.fillStyle=ac;rr(x,40,36,w,62,14);x.fill();x.fillStyle='#fff';x.fillText(sub,62,48);}}
+    else{x.fillStyle='#f5f7ff';x.fillRect(0,0,W,H);x.fillStyle=ac;x.fillRect(0,0,W,16);
+      if(sj||bg){x.save();rr(x,760,60,460,600,40);x.clip();drawCover(x,sj||bg,460,600);x.restore();const im=sj||bg;x.save();rr(x,760,60,460,600,40);x.clip();const s=Math.max(460/iw(im),600/ih(im));x.drawImage(im,760+(460-iw(im)*s)/2,60+(600-ih(im)*s)/2,iw(im)*s,ih(im)*s);x.restore();}
+      let fs=110,ls;do{ls=title(t,fs,'Arial Black, Arial, sans-serif',(sj||bg)?640:1150);fs-=5;}while(ls.length*fs*1.1>500&&fs>36);fs+=5;x.font=fs+'px Arial Black, Arial, sans-serif';x.fillStyle='#111827';
+      const y0=(H-ls.length*fs*1.1)/2;ls.forEach((l,i)=>x.fillText(l,60,y0+i*fs*1.1));
+      if(sub){x.font='bold 38px Arial';const w=x.measureText(sub).width+44;x.fillStyle=ac;rr(x,60,H-120,w,64,14);x.fill();x.fillStyle='#fff';x.fillText(sub,82,H-108);}}
+  };
+  $$('input,select',b).forEach(i=>{if(i.type!=='file')i.oninput=draw;});draw();
+  $('#fb',b).onchange=async e=>{const f=e.target.files[0];if(f){bg=await fileToImg(f);draw();}};
+  $('#fs',b).onchange=async e=>{const f=e.target.files[0];if(f){sj=await fileToImg(f);draw();}};
+  $('#dl',b).onclick=()=>{if(!charge(19))return;saveCanvas(cv,'thumbnail.jpg','image/jpeg',.93);success();};
+}
+// 20 Referral
+function refLink(){return APP_SHORT_NAME?'https://t.me/'+BOT_USERNAME+'/'+APP_SHORT_NAME+'?startapp=REF_'+ME.id:'https://t.me/'+BOT_USERNAME+'?start=REF_'+ME.id;}
+function r20(b){
+  const draw=()=>{
+    const done=P.refBy&&P.refDays.length>=CFG.refDays;
+    b.innerHTML='<div class="box"><b>Invite friends 👥</b><p class="note">When a friend joins with your link and watches ads on '+CFG.refDays+' different days, you get <b>'+CFG.refReward+' coins</b>.</p><input class="inp" readonly value="'+esc(refLink())+'" id="lk"><div class="row"><button class="btn" id="cp">Copy link</button><button class="btn sec" id="sh">Share</button></div></div>'+
+    '<div class="stat"><div><b>'+DB.refs.length+'</b><small>Rewarded referrals</small></div><div><b>'+(DB.refs.length*CFG.refReward)+'</b><small>Coins earned</small></div></div>'+
+    (P.refBy?'<div class="box" style="margin-top:12px"><b>Your referral progress</b><p class="note">Ad days: '+Math.min(P.refDays.length,CFG.refDays)+' / '+CFG.refDays+'</p>'+(done?'<p class="note">Goal complete! Send this claim code to your inviter:</p><textarea class="inp" rows="3" readonly id="cc">'+esc(makeCode({t:'rc',to:P.refBy,from:ME.id}))+'</textarea><button class="btn sec" id="cc2">Copy claim code</button>':'')+'</div>':'')+
+    '<div class="box"><b>Redeem a code</b><p class="note">Paste a referral claim code (from your friend) or an admin gift code.</p><textarea class="inp" rows="3" id="rd" placeholder="TM-…"></textarea><button class="btn" id="rb">Redeem</button></div>'+
+    '<p class="note">Why codes? This app has no server, so rewards between two different users are passed with signed codes.</p>';
+    $('#cp',b).onclick=()=>copyText(refLink());
+    $('#sh',b).onclick=()=>openLink('https://t.me/share/url?url='+encodeURIComponent(refLink())+'&text='+encodeURIComponent('Join me and earn free AI tools! 🎁'));
+    if($('#cc2',b))$('#cc2',b).onclick=()=>copyText($('#cc',b).value);
+    $('#rb',b).onclick=()=>{if(redeem($('#rd',b).value))draw();};
+  };
+  draw();b._redraw=draw;
+}
+
+const F=[
+ {id:1,i:'🎨',n:'AI Image',r:r1},{id:2,i:'🎬',n:'AI Video',r:r2},{id:3,i:'💬',n:'Chat Free',r:r3},{id:4,i:'🎤',n:'Voice to Text',r:r4},{id:5,i:'🔊',n:'Text to Voice',r:r5},
+ {id:6,i:'📝',n:'YT to Text',r:r6},{id:7,i:'⬇️',n:'YT Downloader',r:r7},{id:8,i:'✨',n:'Photo Enhancer',r:r8},{id:9,i:'📹',n:'Video Enhancer',r:r9},{id:10,i:'✂️',n:'BG Remover',r:r10},
+ {id:11,i:'🖌️',n:'Image Editor',r:r11},{id:12,i:'🧑‍🎨',n:'Cartoon Photo',r:r12},{id:13,i:'🎞️',n:'Cartoon Video',r:r13},{id:14,i:'🧑‍🎤',n:'Avatar / Face Swap',r:r14},{id:15,i:'🎵',n:'AI Music',r:r15},
+ {id:16,i:'🏷️',n:'Logo Maker',r:r16},{id:17,i:'#️⃣',n:'Caption / Hashtag',r:r17},{id:18,i:'📖',n:'Story Writer',r:r18},{id:19,i:'🖼️',n:'YT Thumbnail',r:r19},{id:20,i:'🎁',n:'Referral',r:r20}
+];
+const rendered={};
+function buildPages(){
+  const root=$('#pages');
+  F.forEach(f=>{const d=document.createElement('div');d.className='page';d.id='p-f'+f.id;
+    d.innerHTML='<div class="hd"><button class="bk" data-back>←</button><h2>'+f.i+' '+esc(f.n)+'</h2><span class="chip" id="cc'+f.id+'"></span></div><div class="fbody"></div>';root.appendChild(d);});
+}
+function openFeature(id){
+  if(!CFG.features[id].on)return toast('This feature is temporarily OFF');
+  const f=F.find(x=>x.id===id),pg=$('#p-f'+id),box=$('.fbody',pg);
+  const c=fcost(id);$('#cc'+id).textContent=isOwner?'Free (owner)':(c>0?'🪙 '+c+' / use':'Free');
+  if(!rendered[id]){rendered[id]=1;try{f.r(box);}catch(e){box.innerHTML='<p class="note">Failed to load: '+esc(e.message)+'</p>';}}
+  else if(box._redraw)box._redraw();
+  go('p-f'+id);
+}
+
+/* ================= HOME / PROFILE / HISTORY / FEEDBACK ================= */
+function renderHome(){
+  const h=$('#p-home');
+  h.innerHTML='<div class="top">'+avatarHTML(46)+'<div class="nm"><b>'+esc(ME.name)+'</b><small>'+(ME.username?'@'+esc(ME.username):'ID '+ME.id)+'</small></div><div class="coin">🪙 <span class="coins-val"></span></div><button class="ibtn" id="hRef">👥</button><button class="ibtn" id="hPro">👤</button></div>'+
+  (isOwner?'<div class="box" style="text-align:center">👑 Owner mode — unlimited coins, no ads</div>':'<button class="btn ad" id="adbtn"></button>')+
+  '<div class="grid">'+F.map((f,i)=>'<div class="fc'+(CFG.features[f.id].on?'':' off')+'" style="--i:'+i+'" data-f="'+f.id+'"><span class="ic">'+f.i+'</span><b>'+esc(f.n)+'</b><small>'+(isOwner?'Free':(CFG.features[f.id].on?(fcost(f.id)>0?'🪙 '+fcost(f.id):'Free'):'OFF'))+'</small></div>').join('')+'</div>';
+  $$('.fc',h).forEach(c=>c.onclick=()=>openFeature(+c.dataset.f));
+  $('#hPro',h).onclick=()=>go('p-profile');$('#hRef',h).onclick=()=>openFeature(20);
+  if($('#adbtn',h)){$('#adbtn',h).onclick=watchAd;setAdBtn();}
+  renderCoins();
+}
+function renderProfile(){
+  const p=$('#p-profile');
+  p.innerHTML='<div class="hd"><button class="bk" data-back>←</button><h2>👤 Profile</h2></div><div style="text-align:center;margin-bottom:14px">'+avatarHTML(90)+'<h3 style="margin:10px 0 2px">'+esc(ME.name)+' <span class="lock">🔒</span></h3><div class="lock">Name is locked and synced from Telegram</div></div>'+
+  '<div class="stat"><div><b class="coins-val"></b><small>Coins</small></div><div><b>'+(P.ads||0)+'</b><small>Ads watched</small></div><div><b>'+DB.refs.length+'</b><small>Referrals</small></div><div><b style="font-size:15px">'+ME.id+'</b><small>ID</small></div></div>'+
+  '<div class="box" style="margin-top:12px"><small class="lock">Username</small><div>'+(ME.username?'@'+esc(ME.username):'—')+'</div></div>'+
+  '<label class="up" style="margin:6px 0">📷 Change profile photo<input type="file" accept="image/*" hidden id="pf"></label>'+
+  '<button class="btn sec" id="pH">🪙 Coin History</button><button class="btn sec" id="pF">💬 Feedback</button><button class="btn sec" id="pS">🛟 Support</button><button class="btn sec" id="pR">🎁 Redeem / Referral</button><button class="btn bad" id="pD">🗑 Request Account Deletion</button>';
+  renderCoins();
+  $('#pH',p).onclick=()=>go('p-hist');$('#pF',p).onclick=()=>go('p-fb');$('#pR',p).onclick=()=>openFeature(20);
+  $('#pS',p).onclick=()=>openLink('https://t.me/'+SUPPORT_ID);
+  $('#pf',p).onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const im=await fileToImg(f),c=document.createElement('canvas');let s=96,q=.6,d='';
+    while(true){c.width=c.height=s;const k=Math.max(s/iw(im),s/ih(im)),w=iw(im)*k,h=ih(im)*k;c.getContext('2d').drawImage(im,(s-w)/2,(s-h)/2,w,h);d=c.toDataURL('image/jpeg',q);if(d.length<3300||s<=48)break;s-=16;q=Math.max(.4,q-.05);}
+    DB.photo={d};save('photo');renderProfile();renderHome();toast('Photo updated ✅');}catch(x){toast('Bad image');}};
+  $('#pD',p).onclick=()=>{
+    const doit=()=>{const r={t:Date.now(),id:ME.id,n:ME.name};DB.req.push(r);save('req');toast('Deletion request saved ✅');
+      if(ADMIN_USERNAME)openLink('https://t.me/'+ADMIN_USERNAME+'?text='+encodeURIComponent('TMAPP:'+JSON.stringify({k:'del',id:ME.id,n:ME.name,ts:r.t})));};
+    try{tg.showConfirm('Send account deletion request to admin?',ok=>{if(ok)doit();});}catch(e){if(confirm('Send account deletion request?'))doit();}};
+}
+function renderHist(){
+  const h=$('#p-hist');
+  h.innerHTML='<div class="hd"><button class="bk" data-back>←</button><h2>🪙 Coin History</h2><span class="chip">Balance <b class="coins-val"></b></span></div>'+
+  (DB.hist.length?DB.hist.slice().reverse().map(x=>'<div class="hist"><div>'+esc(x.r)+'<small>'+new Date(x.t).toLocaleString()+'</small></div><div class="'+(x.a>=0?'pos':'neg')+'">'+(x.a>=0?'+':'')+x.a+'</div></div>').join(''):'<p class="note">No history yet. Watch an ad to earn coins!</p>');
+  renderCoins();
+}
+function renderFb(){
+  const f=$('#p-fb');
+  f.innerHTML='<div class="hd"><button class="bk" data-back>←</button><h2>💬 Feedback</h2></div><div class="box"><textarea id="ft" class="inp" rows="5" maxlength="300" placeholder="Tell us what to improve… (max 300 chars)"></textarea><button class="btn" id="fs">Submit</button><p class="note">Saved in your account storage'+(ADMIN_USERNAME?'; after saving you can also send it to the admin with one tap.':'.')+'</p></div>'+
+  (DB.fb.length?'<div class="box"><b>Your previous feedback</b>'+DB.fb.slice().reverse().slice(0,10).map(x=>'<div class="hist"><div>'+esc(x.m)+'<small>'+new Date(x.t).toLocaleString()+'</small></div></div>').join('')+'</div>':'');
+  $('#fs',f).onclick=()=>{const m=$('#ft',f).value.trim().slice(0,300);if(m.length<3)return toast('Write a bit more');
+    const r={t:Date.now(),m};DB.fb.push(r);save('fb');toast('Feedback saved ✅');
+    if(ADMIN_USERNAME)openLink('https://t.me/'+ADMIN_USERNAME+'?text='+encodeURIComponent('TMAPP:'+JSON.stringify({k:'fb',id:ME.id,n:ME.name,t:m,ts:r.t})));
+    renderFb();};
+}
+
+/* ================= SPLASH LOTTIE ================= */
+function initLottie(){
+  const el=$('#lot');
+  try{
+    const kf=(s,e,t)=>({t,s,e,i:{x:[.5],y:[1]},o:{x:[.5],y:[0]}});
+    lottie.loadAnimation({container:el,renderer:'svg',loop:true,autoplay:true,animationData:{v:'5.7.0',fr:30,ip:0,op:60,w:200,h:200,nm:'pulse',ddd:0,assets:[],layers:[{ddd:0,ind:1,ty:4,nm:'c',sr:1,ks:{o:{a:0,k:100},r:{a:0,k:0},p:{a:0,k:[100,100,0]},a:{a:0,k:[0,0,0]},s:{a:1,k:[kf([60,60,100],[100,100,100],0),kf([100,100,100],[60,60,100],30),{t:60,s:[60,60,100]}]}},ao:0,shapes:[{ty:'gr',it:[{ty:'el',p:{a:0,k:[0,0]},s:{a:0,k:[120,120]},nm:'e'},{ty:'fl',c:{a:0,k:[.23,.51,.96,1]},o:{a:0,k:100},r:1,nm:'f'},{ty:'tr',p:{a:0,k:[0,0]},a:{a:0,k:[0,0]},s:{a:0,k:[100,100]},r:{a:0,k:0},o:{a:0,k:100},sk:{a:0,k:0},sa:{a:0,k:0}}],nm:'g'}],ip:0,op:60,st:0,bounds:{}}]}});
+  }catch(e){el.innerHTML='<div class="spin" style="margin:40px auto"></div>';}
+}
+
+/* ================= BOOT ================= */
+async function boot(){
+  if(!tg||!tg.initData)return blockScreen('Please Open Inside Telegram Bot @'+BOT_USERNAME,'This app only works inside Telegram.');
+  try{tg.ready();tg.expand();tg.setHeaderColor('#0e1020');tg.setBackgroundColor('#0e1020');if(tg.disableVerticalSwipes)tg.disableVerticalSwipes();}catch(e){}
+  const u=tg.initDataUnsafe&&tg.initDataUnsafe.user;
+  if(!u||!u.id)return blockScreen('Please Open Inside Telegram Bot @'+BOT_USERNAME,'This app only works inside Telegram.');
+  initLottie();
+  ME={id:u.id,name:((u.first_name||'')+' '+(u.last_name||'')).trim()||'User',username:u.username||'',photo:u.photo_url||''};
+  isOwner=!!ADMIN_ID&&ME.id===ADMIN_ID;
+  const t0=Date.now();
+  await loadCfg();
+  if(CFG.banned.includes(ME.id))return blockScreen('Account Banned','Contact support: @'+SUPPORT_ID);
+  await loadAll();
+  MYFP=await deviceFP();
+  if(await deviceCheck(MYFP)==='blocked')return blockScreen('Logged in on another device','This account is active on a newer device. This device is blocked.');
+  P.name=ME.name;P.username=ME.username;                // auto-sync Telegram name/username
+  const m=/^REF_(\d+)$/.exec((tg.initDataUnsafe&&tg.initDataUnsafe.start_param)||'');
+  if(m&&!P.refBy&&Number(m[1])!==ME.id&&Date.now()-P.joined<172800000)P.refBy=Number(m[1]);
+  save('profile');
+  buildPages();renderHome();
+  document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-back]'))back();});
+  try{tg.BackButton.onClick(back);}catch(e){}
+  if(!hasCS)setTimeout(()=>toast('Cloud storage unavailable — using local backup only'),2200);
+  await sleep(Math.max(0,1500-(Date.now()-t0)));
+  go('p-home',true);
+  setInterval(periodic,45000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)periodic();});
+}
+boot();
+</script>
+</body>
+</html>
